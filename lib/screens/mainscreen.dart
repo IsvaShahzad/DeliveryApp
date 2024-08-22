@@ -39,6 +39,15 @@ class _MainScreenState extends State<MainScreen> {
     _saveCategoriesToFirestore(); // Save categories on init
   }
 
+
+
+  List<String> allTitles = [
+    ...titlesMain,
+    ...titlesCuisineForYou,
+    ...titlesHotDeals,
+    ...titleDesiDesire
+  ];
+
   Future<void> _fetchUserName() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -54,28 +63,64 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-
   Future<void> _saveCategoriesToFirestore() async {
     // Implementation for saving categories
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    final filteredTitles = titlesMain
-        .where(
-            (title) => title.toLowerCase().contains(_searchQuery.toLowerCase()))
+    // Filter titles based on search query
+    final filteredTitles = allTitles
+        .where((title) => title.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
 
+    // Map filtered titles to their respective image paths
     final filteredImagePaths = filteredTitles
-        .map((title) => imagePathsAllRestaurant[titlesMain.indexOf(title)])
+        .map((title) {
+      int index;
+      if (titlesMain.contains(title)) {
+        index = titlesMain.indexOf(title);
+        return imagePathsAllRestaurant[index];
+      } else if (titlesCuisineForYou.contains(title)) {
+        index = titlesCuisineForYou.indexOf(title);
+        return imagePathsCuisinesForYou[index];
+      } else if (titlesHotDeals.contains(title)) {
+        index = titlesHotDeals.indexOf(title);
+        return imagePathsHotDeals[index];
+      } else if (titleDesiDesire.contains(title)) {
+        index = titleDesiDesire.indexOf(title);
+        return imagepathDesiDesire[index];
+      }
+      return null; // Handle cases where title is not fo
+      // und
+    })
+        .where((path) => path != null) // Filter out null paths
+        .map((path) => path!) // Ensure non-null values for further operations
+        .where((path) {
+      final pathString = path.toLowerCase(); // Normalize the path to lowercase
+      return !imagePathsStart.any((startPath) => startPath.toLowerCase() == pathString);
+    }) // Exclude paths in imagePathsStart
         .toList();
+
+    print('Filtered Titles: $filteredTitles');
+    print('Filtered Image Paths: $filteredImagePaths');
+
+
 
     return WillPopScope(
       onWillPop: () async {
         // Returning false prevents the screen from being popped
         return false;
       },
+
+
+
       child: Container(
+
+
+
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
@@ -111,183 +156,274 @@ class _MainScreenState extends State<MainScreen> {
                   );
                 },
               ),
-              SizedBox(
-                  width:
-                      16), // Optional: Add some space between the icon and the edge
+              SizedBox(width: 16),
             ],
           ),
           body: SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.all(MediaQuery.of(context).size.width *
-                  0.03), // Adjust padding based on screen width
+              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.03),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    onChanged: (query) {
-                      setState(() {
-                        _searchQuery = query;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search for restaurants & cuisines',
-                      hintStyle: TextStyle(
-                        color: Colors.grey[600], fontSize: 14,
-                        fontWeight:
-                            FontWeight.normal, // Ensure font weight is normal
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[200], // Fill color
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.black54,
-                        size: 26,
-                      ),
-                      contentPadding: EdgeInsets.symmetric(vertical: 0.0),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                        borderSide: BorderSide(color: Colors.grey[100]!),
-                      ),
-                    ),
-                    cursorColor: Colors.grey[400],
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  SizedBox(height: 20),
-                  SizedBox(
-                    height: 220, // Fixed height for the horizontal grid view
-                    child: GridView.builder(
-                      scrollDirection: Axis.horizontal,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 1.5, // Elongated tiles
-                      ),
-                      itemCount: 4,
-                      itemBuilder: (_, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            // Handle onTap for horizontal grid items
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              color: Colors.grey[200], // Placeholder color
-                              child: Stack(
-                                children: [
-                                  Positioned.fill(
-                                    child: Image.asset(
-                                      imagePathsStart[i],
-                                      fit: BoxFit.cover, // Ensure the image covers the entire container
-                                    ),
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.bottomCenter,
-                                        end: Alignment.topCenter,
-                                        colors: [
-                                          Colors.black.withOpacity(0.1),
-                                          Colors.transparent,
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      onChanged: (query) {
+                        setState(() {
+                          _searchQuery = query;
+                        });
                       },
-                    ),
-                  ),
-
-                  SizedBox(height: 20),
-
-                  Text(
-                    "Cuisines for you",
-                    style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.width * 0.057,
-                        color: Colors.black,
-                        fontFamily: 'Kanit',
-                        fontWeight: FontWeight.w500),
-                  ),
-
-                  SizedBox(height: 10),
-
-                  // Horizontal GridView for featured restaurants
-                  SizedBox(
-                    height:
-                        100, // Set a fixed height for the horizontal grid view
-                    child: GridView.builder(
-                      scrollDirection: Axis.horizontal,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        childAspectRatio: 1, // Wider tiles
+                      decoration: InputDecoration(
+                        hintText: 'Search for restaurants & cuisines',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.black54,
+                          size: 26,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 0.0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25.0),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25.0),
+                          borderSide: BorderSide(color: Colors.grey[100]!),
+                        ),
                       ),
-                      itemCount: titlesCuisineForYou.length,
-                      itemBuilder: (_, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            // Handle onTap for horizontal grid items
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: Container(
-                              color: Colors.grey[200], // Placeholder color
-                              child: Stack(
-                                children: [
-                                  Image.network(
-                                    imagePathsCuisinesForYou[
-                                        i], // Replace this with the list of network image URLs
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.bottomCenter,
-                                        end: Alignment.topCenter,
-                                        colors: [
-                                          Colors.black.withOpacity(0.1),
-                                          Colors.transparent,
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Align(
-                                    alignment: Alignment
-                                        .bottomCenter, // Aligns the text to the bottom center
-                                    child: Text(
-                                      titlesCuisineForYou[i],
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontFamily: 'Kanit',
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                      cursorColor: Colors.grey[400],
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    SizedBox(height: 20),
+
+                    // Conditionally display the GridView or other widgets
+                    if (_searchQuery.isNotEmpty)
+                      filteredTitles.isNotEmpty
+                          ?
+        GridView.builder(
+        scrollDirection: Axis.vertical,
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 1,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 1, // Wider tiles
+          ),
+          itemCount: filteredTitles.length,
+          itemBuilder: (_, i) {
+            final title = filteredTitles[i];
+            final imagePath = filteredImagePaths[i];
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductViewScreen(
+                      title: title,
+                        imagePath: filteredImagePaths[i] ?? '', // Use the correct index to get a single image path
+                      products: products[title] ?? [],
                     ),
                   ),
-
-                  SizedBox(height: 20),
-
-                  Row(
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12), // Match the borderRadius
+                child: Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Expanded(
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            imagePath != null
+                                ? (imagePath.startsWith('http') ||
+                                imagePath.startsWith('https'))
+                                ? Image.network(
+                              imagePath,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            )
+                                : Image.asset(
+                              imagePath,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            )
+                                : Container(
+                                color: Colors.grey[300]), // Fallback placeholder
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    Colors.black.withOpacity(0.3),
+                                    Colors.transparent,
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductViewScreen(
+                                title: title,
+                                imagePath:  filteredImagePaths[i] ?? '',
+                                products: products[title] ?? [],
+                              ),
+                            ),
+                          );
+                        },
+                        child: Card(
+                          elevation: 1,
+                          color: Colors.white,
+                          child: Container(
+                            padding: EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Montserrat', // Match the fontFamily
+                                    fontSize: MediaQuery.of(context).size.width * 0.04,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.access_time,
+                                      color: Colors.grey[700],
+                                      size: MediaQuery.of(context).size.width * 0.045,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '30-40 mins',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontFamily: 'Montserrat', // Match the fontFamily
+                                        fontSize: MediaQuery.of(context).size.width * 0.035,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.delivery_dining,
+                                        color: Colors.grey[700],
+                                        size: MediaQuery.of(context).size.width * 0.055,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        '₹100',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontFamily: 'Montserrat', // Match the fontFamily
+                                          fontSize: MediaQuery.of(context).size.width * 0.035,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        )
+
+            : Center(
+                              child: Text(
+                                'No results found',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            )
+                    else ...[
+                      SizedBox(
+                        height:
+                            220, // Fixed height for the horizontal grid view
+                        child: GridView.builder(
+                          scrollDirection: Axis.horizontal,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 1.5, // Elongated tiles
+                          ),
+                          itemCount: 4,
+                          itemBuilder: (_, i) {
+                            return GestureDetector(
+                              onTap: () {
+                                // Handle onTap for horizontal grid items
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  color: Colors.grey[200], // Placeholder color
+                                  child: Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child: Image.asset(
+                                          imagePathsStart[i],
+                                          fit: BoxFit
+                                              .cover, // Ensure the image covers the entire container
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.bottomCenter,
+                                            end: Alignment.topCenter,
+                                            colors: [
+                                              Colors.black.withOpacity(0.1),
+                                              Colors.transparent,
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      SizedBox(height: 20),
+
                       Text(
-                        "Hot Deals & Discounts",
+                        "Cuisines for you",
                         style: TextStyle(
                           fontSize: MediaQuery.of(context).size.width * 0.057,
                           color: Colors.black,
@@ -295,183 +431,673 @@ class _MainScreenState extends State<MainScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      Spacer(
-                      ), // This widget will push the container to the end of the row
-                      Container(
-                        width: 34, // Adjust the width of the circle
-                        height: 34, // Adjust the height of the circle
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors
-                              .grey[200], // Background color of the circle
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_forward_ios_sharp,
-                              size: 18, color: Colors.black87),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VerticalGridScreen(
-                                  titles: titlesHotDeals,
-                                  imagePaths: imagePathsHotDeals,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
 
-                  SizedBox(height: 10),
+                      SizedBox(height: 10),
 
-                  // Horizontal GridView for featured restaurants
-                  SizedBox(
-                    height:
-                        220, // Set a fixed height for the horizontal grid view
-                    child: GridView.builder(
-                      scrollDirection: Axis.horizontal,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        childAspectRatio: 1, // Wider tiles
-                      ),
-                      itemCount: titlesHotDeals.length,
-                      itemBuilder: (_, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProductViewScreen(
-                                  title: titlesHotDeals[
-                                      i], // Pass the title for the new screen
-                                  imagePath: imagePathsHotDeals[
-                                      i], // Pass the image path for the new screen
-                                  products: products[titlesHotDeals[i]] ??
-                                      [], // Pass the products related to the title
-                                ),
-                              ),
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        Image.network(
-                                          imagePathsHotDeals[
-                                              i], // Use network image for the grid tile
-                                          fit: BoxFit.cover,
-                                        ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.bottomCenter,
-                                              end: Alignment.topCenter,
-                                              colors: [
-                                                Colors.transparent,
-                                              ],
-                                            ),
+                      // Horizontal GridView for featured restaurants
+                      SizedBox(
+                        height:
+                            100, // Set a fixed height for the horizontal grid view
+                        child: GridView.builder(
+                          scrollDirection: Axis.horizontal,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 1, // Wider tiles
+                          ),
+                          itemCount: titlesCuisineForYou.length,
+                          itemBuilder: (_, i) {
+                            return GestureDetector(
+                              onTap: () {
+                                // Handle onTap for horizontal grid items
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Container(
+                                  color: Colors.grey[200], // Placeholder color
+                                  child: Stack(
+                                    children: [
+                                      Image.network(
+                                        imagePathsCuisinesForYou[
+                                            i], // Replace this with the list of network image URLs
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.bottomCenter,
+                                            end: Alignment.topCenter,
+                                            colors: [
+                                              Colors.black.withOpacity(0.1),
+                                              Colors.transparent,
+                                            ],
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                      Align(
+                                        alignment: Alignment
+                                            .bottomCenter, // Aligns the text to the bottom center
+                                        child: Text(
+                                          titlesCuisineForYou[i],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Kanit',
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      SizedBox(height: 20),
+
+                      Row(
+                        children: [
+                          Text(
+                            "Hot Deals & Discounts",
+                            style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.057,
+                              color: Colors.black,
+                              fontFamily: 'Kanit',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Spacer(), // This widget will push the container to the end of the row
+                          Container(
+                            width: 34, // Adjust the width of the circle
+                            height: 34, // Adjust the height of the circle
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors
+                                  .grey[200], // Background color of the circle
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.arrow_forward_ios_sharp,
+                                  size: 18, color: Colors.black87),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VerticalGridScreen(
+                                      titles: titlesHotDeals,
+                                      imagePaths: imagePathsHotDeals,
                                     ),
                                   ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ProductViewScreen(
-                                            title: titlesHotDeals[i],
-                                            imagePath: imagePathsHotDeals[
-                                                i], // Pass the specific image path
-                                            products: products[titlesHotDeals[i]] ??
-                                                [], // Pass the related products
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Card(
-                                      elevation: 1,
-                                      color: Colors.white,
-                                      child: Container(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                titlesHotDeals[i],
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Montserrat',
-                                                  fontSize:
-                                                      MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          0.04,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 10),
+
+                      // Horizontal GridView for hot deals
+
+                      // Horizontal GridView for featured restaurants
+                      SizedBox(
+                        height:
+                            220, // Set a fixed height for the horizontal grid view
+                        child: GridView.builder(
+                          scrollDirection: Axis.horizontal,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 1, // Wider tiles
+                          ),
+                          itemCount: titlesHotDeals.length,
+                          itemBuilder: (_, i) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductViewScreen(
+                                      title: titlesHotDeals[
+                                          i], // Pass the title for the new screen
+                                      imagePath: imagePathsHotDeals[
+                                          i], // Pass the image path for the new screen
+                                      products: products[titlesHotDeals[i]] ??
+                                          [], // Pass the products related to the title
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            Image.network(
+                                              imagePathsHotDeals[
+                                                  i], // Use network image for the grid tile
+                                              fit: BoxFit.cover,
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.bottomCenter,
+                                                  end: Alignment.topCenter,
+                                                  colors: [
+                                                    Colors.transparent,
+                                                  ],
                                                 ),
                                               ),
-                                              SizedBox(height: 4),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ProductViewScreen(
+                                                title: titlesHotDeals[i],
+                                                imagePath: imagePathsHotDeals[
+                                                    i], // Pass the specific image path
+                                                products: products[
+                                                        titlesHotDeals[i]] ??
+                                                    [], // Pass the related products
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Card(
+                                          elevation: 1,
+                                          color: Colors.white,
+                                          child: Container(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  Icon(
-                                                    Icons.access_time,
-                                                    color: Colors.grey[700],
-                                                    size: MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.045,
-                                                  ),
-                                                  SizedBox(width: 4),
                                                   Text(
-                                                    '30-40 mins',
-                                                    textAlign: TextAlign.start,
+                                                    titlesHotDeals[i],
                                                     style: TextStyle(
-                                                      color: Colors.grey[600],
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontFamily: 'Montserrat',
                                                       fontSize:
                                                           MediaQuery.of(context)
                                                                   .size
                                                                   .width *
+                                                              0.04,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 4),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.access_time,
+                                                        color: Colors.grey[700],
+                                                        size: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.045,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Text(
+                                                        '30-40 mins',
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontFamily:
+                                                              'Montserrat',
+                                                          fontSize: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
                                                               0.035,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.delivery_dining,
+                                                          color:
+                                                              Colors.grey[700],
+                                                          size: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.055,
+                                                        ),
+                                                        SizedBox(width: 4),
+                                                        Text(
+                                                          '100/-',
+                                                          style: TextStyle(
+                                                            color: Colors
+                                                                .grey[600],
+                                                            fontFamily:
+                                                                'Montserrat',
+                                                            fontSize: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                0.035,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                              SizedBox(height: 8),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Row(
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      SizedBox(height: 10),
+
+                      Row(
+                        children: [
+                          Text(
+                            "Desi Desire",
+                            style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.057,
+                              color: Colors.black,
+                              fontFamily: 'Kanit',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Spacer(), // This widget will push the container to the end of the row
+                          Container(
+                            width: 34, // Adjust the width of the circle
+                            height: 34, // Adjust the height of the circle
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors
+                                  .grey[200], // Background color of the circle
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.arrow_forward_ios_sharp,
+                                  size: 17, color: Colors.black87),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VerticalGridScreen(
+                                      titles: titleDesiDesire,
+                                      imagePaths: imagepathDesiDesire,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 10),
+
+                      // Horizontal GridView for featured restaurants
+                      SizedBox(
+                        height:
+                            220, // Set a fixed height for the horizontal grid view
+                        child: GridView.builder(
+                          scrollDirection: Axis.horizontal,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 1, // Wider tiles
+                          ),
+                          itemCount: titleDesiDesire.length,
+                          itemBuilder: (_, i) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductViewScreen(
+                                      title: titleDesiDesire[
+                                          i], // Pass the title for the new screen
+                                      imagePath: imagepathDesiDesire[
+                                          i], // Pass the image path for the new screen
+                                      products: products[titleDesiDesire[i]] ??
+                                          [], // Pass the products related to the title
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            Image.network(
+                                              imagepathDesiDesire[
+                                                  i], // Use network image for the grid tile
+                                              fit: BoxFit.cover,
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.bottomCenter,
+                                                  end: Alignment.topCenter,
+                                                  colors: [
+                                                    Colors.transparent,
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ProductViewScreen(
+                                                title: titleDesiDesire[i],
+                                                imagePath: imagepathDesiDesire[
+                                                    i], // Pass the specific image path
+                                                products: products[
+                                                        titleDesiDesire[i]] ??
+                                                    [], // Pass the related products
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Card(
+                                          elevation: 1,
+                                          color: Colors.white,
+                                          child: Container(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    titleDesiDesire[i],
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: 'Montserrat',
+                                                      fontSize:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              0.04,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 4),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.access_time,
+                                                        color: Colors.grey[700],
+                                                        size: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.045,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Text(
+                                                        '30-40 mins',
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontFamily:
+                                                              'Montserrat',
+                                                          fontSize: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.035,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.delivery_dining,
+                                                          color:
+                                                              Colors.grey[700],
+                                                          size: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.055,
+                                                        ),
+                                                        SizedBox(width: 4),
+                                                        Text(
+                                                          '100/-',
+                                                          style: TextStyle(
+                                                            color: Colors
+                                                                .grey[600],
+                                                            fontFamily:
+                                                                'Montserrat',
+                                                            fontSize: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                0.035,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+
+                      Text(
+                        "All restaurants",
+                        style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width * 0.057,
+                            color: Colors.black,
+                            fontFamily: 'Kanit',
+                            fontWeight: FontWeight.w500),
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.width * 0.02),
+
+                      GridView.builder(
+                        scrollDirection: Axis.vertical,
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+// Disable grid-specific scrolling
+
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 1,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 1, // Wider tiles
+                        ),
+                        itemCount: titlesMain.length,
+                        itemBuilder: (_, i) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProductViewScreen(
+                                    title: titlesMain[
+                                        i], // Pass the title for the new screen
+                                    imagePath: imagePathsAllRestaurant[
+                                        i], // Pass the image path for the new screen
+                                    products: products[titlesMain[i]] ??
+                                        [], // Pass the products related to the title
+                                  ),
+                                ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          Image.asset(
+                                            imagePathsAllRestaurant[i],
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                          ),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.bottomCenter,
+                                                end: Alignment.topCenter,
+                                                colors: [
+                                                  Colors.transparent,
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ProductViewScreen(
+                                              title: titlesMain[i],
+                                              imagePath: imagePathsAllRestaurant[
+                                                  i], // Pass the specific image path
+                                              products: products[
+                                                      titlesMain[i]] ??
+                                                  [], // Pass the related products
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Card(
+                                        elevation: 1,
+                                        color: Colors.white,
+                                        child: Container(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  titlesMain[i],
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Montserrat',
+                                                    fontSize:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.04,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 4),
+                                                Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.start,
                                                   children: [
                                                     Icon(
-                                                      Icons.delivery_dining,
+                                                      Icons.access_time,
                                                       color: Colors.grey[700],
                                                       size:
                                                           MediaQuery.of(context)
                                                                   .size
                                                                   .width *
-                                                              0.055,
+                                                              0.045,
                                                     ),
                                                     SizedBox(width: 4),
                                                     Text(
-                                                      '100/-',
+                                                      '30-40 mins',
+                                                      textAlign:
+                                                          TextAlign.start,
                                                       style: TextStyle(
                                                         color: Colors.grey[600],
                                                         fontFamily:
@@ -485,554 +1111,56 @@ class _MainScreenState extends State<MainScreen> {
                                                     ),
                                                   ],
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-
-                  SizedBox(height: 10),
-
-                  Row(
-                    children: [
-                      Text(
-                        "Desi Desire",
-                        style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.width * 0.057,
-                          color: Colors.black,
-                          fontFamily: 'Kanit',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Spacer(
-                      ), // This widget will push the container to the end of the row
-                      Container(
-                        width: 34, // Adjust the width of the circle
-                        height: 34, // Adjust the height of the circle
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors
-                              .grey[200], // Background color of the circle
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_forward_ios_sharp,
-                              size: 17, color: Colors.black87),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VerticalGridScreen(
-                                  titles: titleDesiDesire,
-                                  imagePaths: imagepathDesiDesire,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 10),
-
-                  // Horizontal GridView for featured restaurants
-                  SizedBox(
-                    height:
-                    220, // Set a fixed height for the horizontal grid view
-                    child: GridView.builder(
-                      scrollDirection: Axis.horizontal,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        childAspectRatio: 1, // Wider tiles
-                      ),
-                      itemCount: titleDesiDesire.length,
-                      itemBuilder: (_, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProductViewScreen(
-                                  title: titleDesiDesire[
-                                  i], // Pass the title for the new screen
-                                  imagePath: imagepathDesiDesire[
-                                  i], // Pass the image path for the new screen
-                                  products: products[titleDesiDesire[i]] ??
-                                      [], // Pass the products related to the title
-                                ),
-                              ),
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        Image.network(
-                                          imagepathDesiDesire[
-                                          i], // Use network image for the grid tile
-                                          fit: BoxFit.cover,
-                                        ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.bottomCenter,
-                                              end: Alignment.topCenter,
-                                              colors: [
-                                                Colors.transparent,
+                                                SizedBox(height: 8),
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.delivery_dining,
+                                                        color: Colors.grey[700],
+                                                        size: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.055,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Text(
+                                                        '100/-',
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontFamily:
+                                                              'Montserrat',
+                                                          fontSize: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.035,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               ],
                                             ),
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ProductViewScreen(
-                                                title: titleDesiDesire[i],
-                                                imagePath: imagepathDesiDesire[
-                                                i], // Pass the specific image path
-                                                products: products[titleDesiDesire[i]] ??
-                                                    [], // Pass the related products
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                    child: Card(
-                                      elevation: 1,
-                                      color: Colors.white,
-                                      child: Container(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                titleDesiDesire[i],
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Montserrat',
-                                                  fontSize:
-                                                  MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                      0.04,
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              Row(
-                                                mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.access_time,
-                                                    color: Colors.grey[700],
-                                                    size: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                        0.045,
-                                                  ),
-                                                  SizedBox(width: 4),
-                                                  Text(
-                                                    '30-40 mins',
-                                                    textAlign: TextAlign.start,
-                                                    style: TextStyle(
-                                                      color: Colors.grey[600],
-                                                      fontFamily: 'Montserrat',
-                                                      fontSize:
-                                                      MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                          0.035,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(height: 8),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.delivery_dining,
-                                                      color: Colors.grey[700],
-                                                      size:
-                                                      MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                          0.055,
-                                                    ),
-                                                    SizedBox(width: 4),
-                                                    Text(
-                                                      '100/-',
-                                                      style: TextStyle(
-                                                        color: Colors.grey[600],
-                                                        fontFamily:
-                                                        'Montserrat',
-                                                        fontSize: MediaQuery.of(
-                                                            context)
-                                                            .size
-                                                            .width *
-                                                            0.035,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
                                       ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-
-                  Text(
-                    "All restaurants",
-                    style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.width * 0.057,
-                        color: Colors.black,
-                        fontFamily: 'Kanit',
-                        fontWeight: FontWeight.w500),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.width * 0.02),
-
-                  GridView.builder(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.vertical,
-                    physics: NeverScrollableScrollPhysics(), // Disable grid-specific scrolling
-
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 1,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 1, // Wider tiles
-                    ),
-                    itemCount: filteredTitles.length,
-                    itemBuilder: (_, i) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductViewScreen(
-                                title: filteredTitles[
-                                i], // Pass the title for the new screen
-                                imagePath: filteredImagePaths[
-                                i], // Pass the image path for the new screen
-                                products: products[filteredTitles[i]] ??
-                                    [], // Pass the products related to the title
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
                           );
                         },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                     Image.asset(
-                                        filteredImagePaths[i],
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                      ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.bottomCenter,
-                                            end: Alignment.topCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ProductViewScreen(
-                                              title: filteredTitles[i],
-                                              imagePath: filteredImagePaths[
-                                              i], // Pass the specific image path
-                                              products: products[filteredTitles[i]] ??
-                                                  [], // Pass the related products
-                                            ),
-                                      ),
-                                    );
-                                  },
-                                  child: Card(
-                                    elevation: 1,
-                                    color: Colors.white,
-                                    child: Container(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              filteredTitles[i],
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Montserrat',
-                                                fontSize:
-                                                MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                    0.04,
-                                              ),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Row(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                              children: [
-                                                Icon(
-                                                  Icons.access_time,
-                                                  color: Colors.grey[700],
-                                                  size: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                      0.045,
-                                                ),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  '30-40 mins',
-                                                  textAlign: TextAlign.start,
-                                                  style: TextStyle(
-                                                    color: Colors.grey[600],
-                                                    fontFamily: 'Montserrat',
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                        0.035,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(height: 8),
-                                            Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.delivery_dining,
-                                                    color: Colors.grey[700],
-                                                    size:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                        0.055,
-                                                  ),
-                                                  SizedBox(width: 4),
-                                                  Text(
-                                                    '100/-',
-                                                    style: TextStyle(
-                                                      color: Colors.grey[600],
-                                                      fontFamily:
-                                                      'Montserrat',
-                                                      fontSize: MediaQuery.of(
-                                                          context)
-                                                          .size
-                                                          .width *
-                                                          0.035,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // GridView.builder(
-                  //   shrinkWrap: true,
-                  //   physics: NeverScrollableScrollPhysics(),
-                  //   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  //     crossAxisCount:
-                  //         MediaQuery.of(context).size.width > 600 ? 3 : 1,
-                  //     crossAxisSpacing:
-                  //         MediaQuery.of(context).size.width * 0.02,
-                  //     mainAxisSpacing: MediaQuery.of(context).size.width * 0.02,
-                  //     childAspectRatio: 0.9,
-                  //   ),
-                  //   itemCount: filteredTitles.length,
-                  //   itemBuilder: (_, i) {
-                  //     return GestureDetector(
-                  //       onTap: () {
-                  //         Navigator.push(
-                  //           context,
-                  //           MaterialPageRoute(
-                  //             builder: (context) => ProductViewScreen(
-                  //               title: filteredTitles[i],
-                  //               imagePath: filteredImagePaths[i],
-                  //               products: products[filteredTitles[i]] ?? [],
-                  //             ),
-                  //           ),
-                  //         );
-                  //       },
-                  //       child: ClipRRect(
-                  //         borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                  //         child: Card(
-                  //           color: Colors.white,
-                  //           elevation: 1,
-                  //           shape: RoundedRectangleBorder(
-                  //             borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                  //           ),
-                  //           child: Column(
-                  //             children: [
-                  //               // Top Image
-                  //               Expanded(
-                  //                 flex: 2, // Adjust this to control the height of the image
-                  //                 child: ClipRRect(
-                  //                   borderRadius: BorderRadius.only(
-                  //                     topLeft: Radius.circular(20.0),
-                  //                     topRight: Radius.circular(20.0),
-                  //                   ),
-                  //                   child: Image.asset(
-                  //                     filteredImagePaths[i],
-                  //                     fit: BoxFit.cover,
-                  //                     width: double.infinity,
-                  //                   ),
-                  //                 ),
-                  //               ),
-                  //               // Bottom Content with Extra Space Above
-                  //               Padding(
-                  //                 padding: const EdgeInsets.only(top: 16.0), // Add padding to the top
-                  //                 child: Container(
-                  //                   padding: const EdgeInsets.all(8.0),
-                  //                   child: Column(
-                  //                     crossAxisAlignment: CrossAxisAlignment.start,
-                  //                     mainAxisSize: MainAxisSize.min, // Ensure this takes only the minimum space needed
-                  //                     children: [
-                  //                       Text(
-                  //                         filteredTitles[i],
-                  //                         style: TextStyle(
-                  //                           color: Colors.black,
-                  //                           fontWeight: FontWeight.bold,
-                  //                           fontFamily: 'Montserrat',
-                  //                           fontSize: MediaQuery.of(context).size.width * 0.04,
-                  //                         ),
-                  //                       ),
-                  //                       SizedBox(height: 4),
-                  //                       Row(
-                  //                         mainAxisAlignment: MainAxisAlignment.start,
-                  //                         children: [
-                  //                           Icon(
-                  //                             Icons.access_time,
-                  //                             color: Colors.grey[700],
-                  //                             size: MediaQuery.of(context).size.width * 0.045,
-                  //                           ),
-                  //                           SizedBox(width: 4),
-                  //                           Text(
-                  //                             '30-40 mins',
-                  //                             textAlign: TextAlign.start,
-                  //                             style: TextStyle(
-                  //                               color: Colors.grey[600],
-                  //                               fontFamily: 'Montserrat',
-                  //                               fontSize: MediaQuery.of(context).size.width * 0.035,
-                  //                             ),
-                  //                           ),
-                  //                         ],
-                  //                       ),
-                  //                       SizedBox(height: 8),
-                  //                       Align(
-                  //                         alignment: Alignment.centerLeft,
-                  //                         child: Row(
-                  //                           mainAxisAlignment: MainAxisAlignment.start,
-                  //                           children: [
-                  //                             Icon(
-                  //                               Icons.delivery_dining,
-                  //                               color: Colors.grey[700],
-                  //                               size: MediaQuery.of(context).size.width * 0.055,
-                  //                             ),
-                  //                             SizedBox(width: 4),
-                  //                             Text(
-                  //                               '100/-',
-                  //                               style: TextStyle(
-                  //                                 color: Colors.grey[600],
-                  //                                 fontFamily: 'Montserrat',
-                  //                                 fontSize: MediaQuery.of(context).size.width * 0.035,
-                  //                               ),
-                  //                             ),
-                  //                           ],
-                  //                         ),
-                  //                       ),
-                  //                     ],
-                  //                   ),
-                  //                 ),
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     );
-                  //   },
-                  // )
-                ],
-              ),
+                      ),
+                    ]
+                  ]),
             ),
           ),
           drawer: Drawer(
@@ -1047,31 +1175,29 @@ class _MainScreenState extends State<MainScreen> {
                 color: Colors.white,
               ),
               child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: <Widget>[
-              Container(
-              color: Color(0xFF7F9BB3), // Header color
-              padding: EdgeInsets.all(20), // Custom padding for content
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                padding: EdgeInsets.zero,
                 children: <Widget>[
-                  SizedBox(height: 100), // Adjust spacing as needed
-                  Text(
-                    'Welcome, $userFirstName',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20, // Font size set to 20
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Montserrat',
-                                  ),
-                                ),
-                              ],
-                            ),
+                  Container(
+                    color: Color(0xFF7F9BB3), // Header color
+                    padding: EdgeInsets.all(20), // Custom padding for content
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        SizedBox(height: 100), // Adjust spacing as needed
+                        Text(
+                          'Welcome, $userFirstName',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20, // Font size set to 20
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Montserrat',
                           ),
-                    SizedBox(height: 20), // Adjust spacing as needed
+                        ),
+                      ],
+                    ),
+                  ),
 
-
-                    Container(
+                  Container(
                     color: Colors.white, // Lighter pink for the tile
                     child: ListTile(
                       contentPadding:

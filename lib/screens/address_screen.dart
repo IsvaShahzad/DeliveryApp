@@ -29,11 +29,13 @@ class _AddressScreenState extends State<AddressScreen> {
   String _selectedProvince = '';
 
   final List<String> _provinceOptions = [
-    'Bahria(Phase 1-8)',
-    'DHA(Phase 1-2)',
+    'Bahria Phase 1-4',
+    'Bahria Phase 7-8',
+    'DHA Phase 1',
+    'DHA Phase 2',
     'Gulraiz',
-    'PWD',
-    'Chaklala'
+    'Chaklala',
+    'Pwd'
   ];
 
   @override
@@ -47,7 +49,6 @@ class _AddressScreenState extends State<AddressScreen> {
     if (user != null) {
       final prefs = await SharedPreferences.getInstance();
 
-      // First, try loading from SharedPreferences
       setState(() {
         _postalCodeController.text = prefs.getString('postalCode') ?? widget.postalCode;
         _mobileController.text = prefs.getString('mobileNumber') ?? widget.mobileNumber;
@@ -55,7 +56,6 @@ class _AddressScreenState extends State<AddressScreen> {
         _selectedProvince = prefs.getString('province') ?? widget.province;
       });
 
-      // Then, fetch from Firestore
       final addressDoc = await FirebaseFirestore.instance
           .collection('shippingdetails')
           .doc(user.email)
@@ -87,17 +87,15 @@ class _AddressScreenState extends State<AddressScreen> {
             'Mobile Number': _mobileController.text,
             'Address': _addressController.text,
             'Area': _selectedProvince,
-            'Postal Code': _postalCodeController.text, // Save postal code
           });
 
-          // Save to shared preferences
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('postalCode', _postalCodeController.text);
           await prefs.setString('mobileNumber', _mobileController.text);
           await prefs.setString('address', _addressController.text);
           await prefs.setString('province', _selectedProvince);
 
-          Navigator.pop(context); // Go back after saving
+          Navigator.pop(context);
         } catch (e) {
           print('Error saving address: $e');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -121,6 +119,7 @@ class _AddressScreenState extends State<AddressScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               TextFormField(
                 controller: _postalCodeController,
                 decoration: InputDecoration(labelText: 'Postal Code'),
@@ -155,7 +154,7 @@ class _AddressScreenState extends State<AddressScreen> {
                 },
               ),
               DropdownButtonFormField<String>(
-                value: _selectedProvince.isNotEmpty ? _selectedProvince : null,
+                value: _provinceOptions.contains(_selectedProvince) ? _selectedProvince : null,
                 items: _provinceOptions.map((province) {
                   return DropdownMenuItem<String>(
                     value: province,
@@ -167,7 +166,11 @@ class _AddressScreenState extends State<AddressScreen> {
                     _selectedProvince = value ?? '';
                   });
                 },
-                decoration: InputDecoration(labelText: 'Area'),
+                decoration: InputDecoration(
+                  labelText: 'Area',
+                  contentPadding: EdgeInsets.symmetric(vertical: 12.0),
+                ),
+                isExpanded: true,
               ),
               SizedBox(height: 20.h),
               ElevatedButton(

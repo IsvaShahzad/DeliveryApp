@@ -229,7 +229,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

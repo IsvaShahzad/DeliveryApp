@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shop/checkout_screens/cartscreen.dart';
 import 'package:shop/checkout_screens/payment_screen.dart';
-import 'package:shop/checkout_screens/shipping_screen.dart';
 import 'package:shop/screens/favourites.dart';
 import 'package:shop/screens/mainscreen.dart';
 import 'package:shop/screens/splash_screen.dart';
@@ -50,7 +49,7 @@ class MyApp extends StatelessWidget {
               // accentColor: Colors.pink,
               inputDecorationTheme: const InputDecorationTheme(),
             ),
-            home: SplashScreen(),
+            home: MainScreen(),
             debugShowCheckedModeBanner: false,
           );
         },

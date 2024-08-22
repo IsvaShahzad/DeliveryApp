@@ -59,7 +59,7 @@ class ProgressBarShipping extends StatelessWidget {
                       Text(
                         steps[index], // Display the title below the circle
                         style: TextStyle(
-                          color: index <= currentIndex ? Colors.black54 : Colors.black38,
+                          color: index <= currentIndex ? Colors.black38 : Colors.black54,
                           fontWeight: FontWeight.bold,
                           fontSize: 12, // Adjust font size if needed
                         ),

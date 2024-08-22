@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop/checkout_screens/payment_screen.dart';
 import 'package:shop/screens/home_screen.dart';
 import 'package:shop/screens/mainscreen.dart';
 import '../widgets/cart_widget.dart';
@@ -7,7 +8,6 @@ import 'delivered_screen.dart';
 import '../../Providers/cart_provider.dart' as cartprovider;
 import '../../cart_screens/cart.dart';
 import '../../cart_screens/cart_items.dart';
-import 'shipping_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -323,7 +323,7 @@ class _CartScreenState extends State<CartScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (BuildContext context) => ShippingScreen(),
+                      builder: (BuildContext context) => PaymentScreen(),
                     ),
                   );
                 },

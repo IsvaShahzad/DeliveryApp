@@ -31,7 +31,7 @@ List<String> imagePathsHotDeals = [
   'https://img.freepik.com/premium-photo/flying-french-fries-with-salt-shower-playful-food-photography_879656-720.jpg',
   'https://tb-static.uber.com/prod/image-proc/processed_images/82877ef93503c3d6bcfdbb7579e6d091/3ac2b39ad528f8c8c5dc77c59abb683d.jpeg',
   'https://cdn.shopify.com/s/files/1/2289/1873/files/warm_plate-min.jpg?v=1668949150',
-  'https://www.shlomosaspen.com/wp-content/uploads/2023/04/american-deli-style-food.jpeg',
+  'https://fullansfoodhall.com/wp-content/uploads/2023/04/122164341_1532337110290060_3264112764343561892_n.jpg',
   'https://www.verywellfit.com/thmb/BrdrHtuMT1hNWP8s0EZIZ36UrdY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/summermeals-150b10ac132446b1becac4a463ee6a25.jpg',
   'https://www.capetourism.com/wp-content/uploads/2023/07/bestburgersincapetown-1-1000x570.jpg',
   'https://recipe30.com/wp-content/uploads/2022/07/Shawarma.jpg',

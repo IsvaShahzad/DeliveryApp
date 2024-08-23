@@ -1423,7 +1423,6 @@ class _MainScreenState extends State<MainScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => AddressScreen(
-                              postalCode: '',
                               mobileNumber: '',
                               address: '',
                               province: '',
